@@ -1,44 +1,61 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, Text, View } from 'react-native';
-import cheerio from 'cheerio';
+import { ScrollView, Text, View, StyleSheet } from 'react-native';
+import axios from 'axios';
 
-// Function to fetch and parse the article from the given URL
-async function getArticle(url) {
-  try {
-    const response = await fetch(url);
-    const html = await response.text();
-
-    // Use cheerio to parse the HTML and extract the article content
-    const $ = cheerio.load(html);
-    const articleContent = $('.article-content').text().trim(); // Trim extra whitespace
-
-    return articleContent;
-  } catch (error) {
-    console.error('Error fetching article:', error);
-    return ''; // Return empty string to prevent rendering errors
-  }
-}
-
-export default function FeedScreen() {
+const NewsScraper = () => {
   const [articles, setArticles] = useState([]);
 
-  // Fetch the article when the component mounts
   useEffect(() => {
-    const fetchArticle = async () => {
-      const article = await getArticle('https://www.weforum.org/press/in-the-news/');
-      setArticles([article]);
+    const fetchArticles = async () => {
+      try {
+        const response = await axios.get('https://webscraper.io/test-sites/e-commerce/allinone');
+        const articles = response.data;
+        setArticles(articles);
+      } catch (error) {
+        console.error('Error fetching articles:', error);
+      }
     };
 
-    fetchArticle();
+    fetchArticles();
   }, []);
 
   return (
-    <ScrollView>
-      {articles.map((article, index) => (
-        <View key={index}>
-          <Text>{article}</Text>
+    <ScrollView style={styles.container}>
+      {Array.isArray(articles) && articles.map((article, index) => (
+        <View key={index} style={styles.articleContainer}>
+          <Text style={styles.title}>{article.title}</Text>
+          <Text style={styles.content}>{article.content}</Text>
         </View>
       ))}
     </ScrollView>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 10,
+    backgroundColor: '#f5f5f5',
+  },
+  articleContainer: {
+    marginBottom: 10,
+    padding: 10,
+    backgroundColor: '#fff',
+    borderRadius: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 1,
+    elevation: 2,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  content: {
+    fontSize: 16,
+  },
+});
+
+export default NewsScraper;
